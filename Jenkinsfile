@@ -5,10 +5,12 @@ pipeline {
     // For production, you might specify a label like: agent { label 'kubernetes-agent' }
     agent any
 
-    // Define environment variables if needed, e.g., for target namespace.
-    environment {
-        // KUBE_NAMESPACE = 'dev' // Uncomment and set your target Kubernetes namespace
-    }
+   // Define environment variables if needed, e.g., for target namespace.
+
+environment {
+    APP_NAME = 'my-web-app' // Example variable
+    // KUBE_NAMESPACE = 'dev' // Example variable, uncomment if needed
+}
 
     stages {
         // --- Stage 1: Checkout Source Code ---
