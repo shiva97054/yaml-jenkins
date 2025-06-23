@@ -55,7 +55,7 @@ stage('Deploy to Kubernetes') {
                     withKubeConfig(credentialsId: 'your-kubeconfig-credential-id') {
                         // If you need to specify a context or namespace from the kubeconfig:
                         // sh "kubectl --context=my-cluster-context --namespace=${env.KUBE_NAMESPACE} apply -f my-app-deployment.yaml"
-                        sh 'kubectl apply -f my-app-deployment.yaml'
+                        sh 'kubectl apply -f my-app-deployment.yaml --validate=false'
                         echo "Applied my-app-deployment.yaml using Jenkins credentials."
                     }
                     */
