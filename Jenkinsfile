@@ -26,14 +26,16 @@ environment {
         // --- Stage 2: Deploy YAML to Kubernetes ---
         // This is the core stage where the YAML file is applied.
         
+
 stage('Deploy to Kubernetes') {
-    steps {
-        script {
-            sh 'kubectl apply -f my-app-deployment.yaml --validate=false'
-        }
-    }
-}
-                    // **IMPORTANT:** The Jenkins agent running this pipeline must have
+            steps { // <--- ADD THIS LINE (opening 'steps' block)
+                script { // This 'script' block should also be inside 'steps'
+                    // Option 1 (Simple: kubectl configured on agent)
+                    sh 'kubectl apply -f my-app-deployment.yaml'
+                    echo "Applied my-app-deployment.yaml to Kubernetes."
+
+ 
+                   // **IMPORTANT:** The Jenkins agent running this pipeline must have
                     // `kubectl` installed and configured to connect to your Kubernetes cluster.
                     // This typically means having a `kubeconfig` file in the correct location
                     // or using Jenkins credentials.
