@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-simple-app
+  labels:
+    app: my-simple-app
+spec:
+  replicas: 1 # Deploy a single instance
+  selector:
+    matchLabels:
+      app: my-simple-app
+  template:
+    metadata:
+      labels:
+        app: my-simple-app
+    spec:
+      containers:
+      - name: my-app-container
+        image: nginx:latest # Replace with your actual application image
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            cpu: "100m"
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-simple-app-service
+  labels:
+    app: my-simple-app
+spec:
+  selector:
+    app: my-simple-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer # Or NodePort / ClusterIP depending on your needs
