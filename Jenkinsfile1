@@ -94,3 +94,26 @@ pipeline {
         }
     } // End of post block
 } // End of pipeline block
+script {
+            // Option 1 (Simple: kubectl configured on agent)
+            // sh 'kubectl apply -f my-app-deployment.yaml' // Comment out or remove this line
+            // echo "Applied my-app-deployment.yaml to Kubernetes." // Comment out or remove this line
+
+            // Option 2 (Recommended: Using Jenkins Kubeconfig Credentials)
+            // Requires the 'Kubernetes CLI' plugin in Jenkins.
+            // You would have configured a 'Kubeconfig' credential in Jenkins
+            // with the ID 'your-kubeconfig-credential-id'.
+            withKubeConfig(credentialsId: 'my-k8s-kubeconfig') { // <-- Replace 'my-k8s-kubeconfig' with your actual credential ID
+                // If you need to specify a context or namespace from the kubeconfig:
+                // sh "kubectl --context=my-cluster-context --namespace=${env.KUBE_NAMESPACE} apply -f my-app-deployment.yaml"
+                sh 'kubectl apply -f my-app-deployment.yaml'
+                echo "Applied my-app-deployment.yaml using Jenkins credentials."
+            }
+            /*
+            // Option 3 (For OpenShift using OpenShift Pipeline Plugin)
+            openshift.withProject('your-openshift-project') {
+                openshift.apply(file: 'my-app-deployment.yaml')
+                echo "Applied my-app-deployment.yaml to OpenShift project."
+            }
+            */
+        } // End of script block
