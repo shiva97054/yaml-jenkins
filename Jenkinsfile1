@@ -9,6 +9,7 @@ pipeline {
     // If you don't need any, you can leave this block empty, or remove it.
     // However, including a variable or a comment makes it syntactically valid.
     environment {
+           sh 'export KUBECONFIG=/home/shiva2002/.kube/config && kubectl get pods'
         // Example: KUBE_NAMESPACE = 'dev' // Uncomment and set your target Kubernetes namespace if needed
         // Placeholder comment, ensures the environment block is not empty for Groovy syntax.
     }
