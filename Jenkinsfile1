@@ -1,36 +1,36 @@
 // This Jenkinsfile defines a Declarative Pipeline for deploying a single YAML file.
-
 pipeline {
-    // Defines where the pipeline will run. 'any' means any available agent.
-    // For production, you might specify a label like: agent { label 'kubernetes-agent' }
     agent any
 
-    // Define global environment variables for the pipeline.
-    // If you don't need any, you can leave this block empty, or remove it.
-    // However, including a variable or a comment makes it syntactically valid.
     environment {
-           sh 'export KUBECONFIG=/home/shiva2002/.kube/config && kubectl get pods'
-        // Example: KUBE_NAMESPACE = 'dev' // Uncomment and set your target Kubernetes namespace if needed
-        // Placeholder comment, ensures the environment block is not empty for Groovy syntax.
+        KUBECONFIG = '/home/shiva2002/.kube/config'
     }
-
-    stages {
-        // --- Stage 1: Checkout Source Code ---
-        // Retrieves the code from the Git repository.
-        stage('Checkout Code') {
-            steps { // All commands/steps must be inside a 'steps' block within a stage.
-                // 'checkout scm' automatically clones the repo configured in the Jenkins job.
-                checkout scm
-                echo "Source code checked out."
+   stages {
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    sh 'kubectl apply -f my-app-deployment.yaml'
+                }
             }
         }
 
-        // --- Stage 2: Deploy YAML to Kubernetes ---
-        // This is the core stage where the YAML file is applied.
-        stage('Deploy to Kubernetes') {
-            steps { // All commands/steps must be inside a 'steps' block within a stage.
-                script { // 'script' block is used to execute arbitrary Groovy code, including 'sh' commands.
-                    // This is your primary deployment command.
+        stage('Verify Deployment') {
+            steps {
+                script {
+                    sh 'kubectl get pods'
+                    sh 'kubectl get svc'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
+// This is your primary deployment command.
                     // IMPORTANT: We've REMOVED --validate=false. This flag is a diagnostic, not a solution.
                     // The underlying issue (network/proxy returning HTML) needs to be fixed separately.
                     // If you're using a specific namespace: sh "kubectl apply -f my-app-deployment.yaml -n ${env.KUBE_NAMESPACE}"
