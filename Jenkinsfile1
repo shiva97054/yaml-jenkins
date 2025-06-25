@@ -1,0 +1,96 @@
+// This Jenkinsfile defines a Declarative Pipeline for deploying a single YAML file.
+
+pipeline {
+    // Defines where the pipeline will run. 'any' means any available agent.
+    // For production, you might specify a label like: agent { label 'kubernetes-agent' }
+    agent any
+
+    // Define global environment variables for the pipeline.
+    // If you don't need any, you can leave this block empty, or remove it.
+    // However, including a variable or a comment makes it syntactically valid.
+    environment {
+        // Example: KUBE_NAMESPACE = 'dev' // Uncomment and set your target Kubernetes namespace if needed
+        // Placeholder comment, ensures the environment block is not empty for Groovy syntax.
+    }
+
+    stages {
+        // --- Stage 1: Checkout Source Code ---
+        // Retrieves the code from the Git repository.
+        stage('Checkout Code') {
+            steps { // All commands/steps must be inside a 'steps' block within a stage.
+                // 'checkout scm' automatically clones the repo configured in the Jenkins job.
+                checkout scm
+                echo "Source code checked out."
+            }
+        }
+
+        // --- Stage 2: Deploy YAML to Kubernetes ---
+        // This is the core stage where the YAML file is applied.
+        stage('Deploy to Kubernetes') {
+            steps { // All commands/steps must be inside a 'steps' block within a stage.
+                script { // 'script' block is used to execute arbitrary Groovy code, including 'sh' commands.
+                    // This is your primary deployment command.
+                    // IMPORTANT: We've REMOVED --validate=false. This flag is a diagnostic, not a solution.
+                    // The underlying issue (network/proxy returning HTML) needs to be fixed separately.
+                    // If you're using a specific namespace: sh "kubectl apply -f my-app-deployment.yaml -n ${env.KUBE_NAMESPACE}"
+                    sh 'kubectl apply -f my-app-deployment.yaml'
+                    echo "Applied my-app-deployment.yaml to Kubernetes."
+
+                    // Option 2 (Recommended: Using Jenkins Kubeconfig Credentials)
+                    // If you uncomment this, make sure you configure the credential in Jenkins.
+                    /*
+                    withKubeConfig(credentialsId: 'your-kubeconfig-credential-id') {
+                        sh 'kubectl apply -f my-app-deployment.yaml'
+                        echo "Applied my-app-deployment.yaml using Jenkins credentials."
+                    }
+                    */
+
+                    // Option 3 (For OpenShift using OpenShift Pipeline Plugin)
+                    /*
+                    openshift.withProject('your-openshift-project') {
+                        openshift.apply(file: 'my-app-deployment.yaml')
+                        echo "Applied my-app-deployment.yaml to OpenShift project."
+                    }
+                    */
+                } // End of script block
+            } // End of steps block
+        } // End of stage 'Deploy to Kubernetes'
+
+        // --- Stage 3: Verify Deployment (Optional but Recommended) ---
+        // Checks the status of the deployed application.
+        stage('Verify Deployment') {
+            steps { // All commands/steps must be inside a 'steps' block within a stage.
+                script {
+                    echo "Waiting for deployment 'my-simple-app' to be ready..."
+                    // Wait for the deployment rollout to complete.
+                    sh 'kubectl rollout status deployment/my-simple-app --timeout=5m'
+                    echo "Deployment 'my-simple-app' is ready!"
+                    // Show basic info about the deployed resources.
+                    sh 'kubectl get pods -l app=my-simple-app'
+                    sh 'kubectl get svc my-simple-app-service'
+                }
+            }
+        }
+    } // End of stages block
+
+    // --- Post-build Actions ---
+    // Actions that run after the pipeline completes, regardless of success or failure.
+    post {
+        always { // Executes always
+            cleanWs() // Clean up the Jenkins workspace to save disk space
+            echo 'Deployment pipeline finished.'
+        }
+        success { // Executes only if all stages passed
+            echo 'YAML file deployed successfully! ✅'
+        }
+        failure { // Executes only if any stage failed
+            echo 'Deployment failed. Check console output for details. ❌'
+        }
+        unstable { // Executes if the build was unstable (e.g., tests failed but pipeline continued)
+            echo 'Deployment completed with unstable status. ⚠️'
+        }
+        aborted { // Executes if the build was manually aborted
+            echo 'Deployment pipeline was aborted. 🛑'
+        }
+    } // End of post block
+} // End of pipeline block
