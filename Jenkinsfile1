@@ -3,7 +3,9 @@ pipeline {
     agent any
 
     environment {
-        KUBECONFIG = '/home/shiva2002/.kube/config'
+    KUBECONFIG = '/var/lib/jenkins/.kube/config'
+}
+
     }
    stages {
         stage('Deploy to Kubernetes') {
